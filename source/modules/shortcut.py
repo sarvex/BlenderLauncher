@@ -19,10 +19,10 @@ def create_shortcut(folder, name):
         targetpath = library_folder / folder / "blender.exe"
         workingdir = library_folder / folder
         desktop = shell.SHGetFolderPath(0, shellcon.CSIDL_DESKTOP, None, 0)
-        dist = Path(desktop) / (name + ".lnk")
+        dist = Path(desktop) / f"{name}.lnk"
 
         if getattr(sys, 'frozen', False):
-            icon = sys._MEIPASS + "/files/winblender.ico"
+            icon = f"{sys._MEIPASS}/files/winblender.ico"
         else:
             icon = Path(
                 "./resources/icons/winblender.ico").resolve().as_posix()
@@ -42,7 +42,7 @@ def create_shortcut(folder, name):
         icon = library_folder / folder / "blender.svg"
         desktop = Path.home() / "Desktop"
         filename = name.replace(' ', '-')
-        dist = desktop / (filename + ".desktop")
+        dist = desktop / f"{filename}.desktop"
 
         desktop_entry = \
             "[Desktop Entry]\n" + \

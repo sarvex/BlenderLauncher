@@ -24,15 +24,15 @@ class FolderObserver(QThread):
                 if len(new_subfolders) > len(subfolders):
                     for sub in new_subfolders:
                         if sub not in subfolders:
-                            print("New -> " + sub)
+                            print(f"New -> {sub}")
                 elif len(new_subfolders) < len(subfolders):
                     for sub in subfolders:
                         if sub not in new_subfolders:
-                            print("Deleted -> " + sub)
+                            print(f"Deleted -> {sub}")
                 else:
                     for sub in new_subfolders:
                         if sub not in subfolders:
-                            print("Changed -> " + sub)
+                            print(f"Changed -> {sub}")
 
                 subfolders = new_subfolders
 
@@ -41,10 +41,4 @@ class FolderObserver(QThread):
         return
 
     def get_subfolders(self):
-        subfolders = []
-
-        for sub in self.folder.iterdir():
-            if sub.is_dir():
-                subfolders.append(sub.name)
-
-        return subfolders
+        return [sub.name for sub in self.folder.iterdir() if sub.is_dir()]

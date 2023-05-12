@@ -154,8 +154,7 @@ class DownloadWidget(BaseBuildWidget):
         self.cancelButton.setEnabled(False)
         library_folder = Path(get_library_folder())
 
-        if (self.build_info.branch == 'stable') or \
-                (self.build_info.branch == 'lts'):
+        if self.build_info.branch in ['stable', 'lts']:
             dist = library_folder / 'stable'
         elif self.build_info.branch == 'daily':
             dist = library_folder / 'daily'
@@ -213,11 +212,7 @@ class DownloadWidget(BaseBuildWidget):
 
     def download_rename(self, build_info):
         self.state = DownloadState.RENAMING
-        new_name = 'blender-{}+{}.{}'.format(
-            build_info.subversion,
-            build_info.branch,
-            build_info.build_hash
-        )
+        new_name = f'blender-{build_info.subversion}+{build_info.branch}.{build_info.build_hash}'
 
         self.build_renamer = Renamer(self.build_dir, new_name)
         self.build_renamer.finished.connect(self.download_finished)

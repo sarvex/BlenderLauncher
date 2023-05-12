@@ -110,31 +110,24 @@ class Scraper(QThread):
         info = r.headers
 
         commit_time = None
-        build_hash = None
-
         stem = Path(link).stem
         match = re.findall(self.hash, stem)
 
-        if match:
-            build_hash = match[-1].replace('-', '')
-
+        build_hash = match[-1].replace('-', '') if match else None
         match = re.search(self.subversion, stem)
-        subversion = match.group(0).replace('-', '')
+        subversion = match[0].replace('-', '')
 
         if branch_type == 'stable':
             branch = 'stable'
         else:
-            build_var = ""
             tag = tag.find_next("span", class_="build-var")
 
-            # For some reason tag can be None on macOS
-            if tag is not None:
-                build_var = tag.get_text()
-
-            if self.platform == 'macOS':
-                if 'arm64' in link:
+            build_var = tag.get_text() if tag is not None else ""
+            if 'arm64' in link:
+                if self.platform == 'macOS':
                     build_var = "{0} │ {1}".format(build_var, 'Arm')
-                elif 'x86_64' in link:
+            elif 'x86_64' in link:
+                if self.platform == 'macOS':
                     build_var = "{0} │ {1}".format(build_var, 'Intel')
 
             if branch_type == 'experimental':
@@ -171,7 +164,7 @@ class Scraper(QThread):
             href = release['href']
             match = re.search(subversion, href)
 
-            if (float(match.group(0)) >= 2.79):
+            if float(match[0]) >= 2.79:
                 self.scrap_download_links(
                     urljoin(url, href), 'stable', stable=True)
 

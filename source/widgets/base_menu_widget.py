@@ -22,14 +22,10 @@ class BaseMenuWidget(QMenu):
             return
 
         menu_height = actions_count * self.action_height
-        reverse = False
-
         cursor = QCursor.pos()
         cursor.setX(cursor.x() - self.action_height * 0.5)
 
-        if cursor.y() > (self.screen_size.height() - menu_height):
-            reverse = True
-
+        reverse = cursor.y() > self.screen_size.height() - menu_height
         if reverse:
             actions.reverse()
             cursor.setY(cursor.y() - actions_count * self.action_height + 15)

@@ -38,7 +38,7 @@ class ConnectionManager(QObject):
 
         # Get custom certificates file path
         if is_frozen() is True:
-            self.cacert = sys._MEIPASS + "/files/custom.pem"
+            self.cacert = f"{sys._MEIPASS}/files/custom.pem"
         else:
             self.cacert = (
                 get_cwd() / "source/resources/certificates/custom.pem").as_posix()

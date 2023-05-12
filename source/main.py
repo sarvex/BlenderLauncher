@@ -83,17 +83,15 @@ def main():
     # Check if other instances of application is already running
     socket = QLocalSocket()
     socket.connectToServer("blender-launcher-server")
-    is_running = socket.waitForConnected()
+    if is_running := socket.waitForConnected():
+        socket.write(QByteArray(version.encode()))
+        socket.waitForBytesWritten()
 
-    if not is_running:
+    else:
         socket.close()
         BlenderLauncher(app=app, version=version,
                         argv=sys.argv, logger=logger)
         sys.exit(app.exec_())
-    else:
-        socket.write(QByteArray(version.encode()))
-        socket.waitForBytesWritten()
-
     sys.exit()
 
 

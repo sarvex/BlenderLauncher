@@ -26,7 +26,5 @@ class Register(QThread):
                             shell=True, stdout=PIPE, stderr=STDOUT, stdin=DEVNULL)
         elif platform == 'Linux':
             b3d_exe = Path(self.path) / "blender"
-            pass
-
         self.finished.emit(0)
         return

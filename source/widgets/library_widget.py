@@ -269,10 +269,12 @@ class LibraryWidget(BaseBuildWidget):
         link_path = Path(get_library_folder()) / "bl_symlink"
         link = link_path.as_posix()
 
-        if os.path.exists(link):
-            if (os.path.isdir(link) or os.path.islink(link)):
-                if link_path.resolve() == self.link:
-                    self.createSymlinkAction.setEnabled(False)
+        if (
+            os.path.exists(link)
+            and (os.path.isdir(link) or os.path.islink(link))
+            and link_path.resolve() == self.link
+        ):
+            self.createSymlinkAction.setEnabled(False)
 
         self.menu._show()
 
@@ -287,7 +289,7 @@ class LibraryWidget(BaseBuildWidget):
                 self.show_new = False
 
             mod = QApplication.keyboardModifiers()
-            if not (mod == Qt.ShiftModifier or mod == Qt.ControlModifier):
+            if mod not in [Qt.ShiftModifier, Qt.ControlModifier]:
                 self.list_widget.clearSelection()
                 self.item.setSelected(True)
 
@@ -351,11 +353,7 @@ class LibraryWidget(BaseBuildWidget):
         elif platform == 'Linux':
             bash_args = get_bash_arguments()
 
-            if bash_args != '':
-                bash_args = bash_args + " nohup"
-            else:
-                bash_args = "nohup"
-
+            bash_args = f"{bash_args} nohup" if bash_args != '' else "nohup"
             b3d_exe = library_folder / self.link / "blender"
             proc = _popen('{0} "{1}" {2}'.format(
                 bash_args, b3d_exe.as_posix(), blender_args))
@@ -402,9 +400,7 @@ class LibraryWidget(BaseBuildWidget):
     @QtCore.pyqtSlot()
     def rename_branch_accepted(self):
         self.lineEdit.hide()
-        name = self.lineEdit.text().strip()
-
-        if name:
+        if name := self.lineEdit.text().strip():
             self.branchLabel._setText(name)
             self.build_info.custom_name = name
             self.write_build_info()
@@ -478,12 +474,11 @@ class LibraryWidget(BaseBuildWidget):
             if self.parent_widget is None:
                 self.parent.draw_from_cashed(self.build_info)
 
-            return
-        # TODO Child synchronization and reverting selection flags
         else:
             self.launchButton._setText("Launch")
             self.setEnabled(True)
-            return
+
+        return
 
     @QtCore.pyqtSlot()
     def add_to_quick_launch(self):
@@ -541,11 +536,7 @@ class LibraryWidget(BaseBuildWidget):
 
     @QtCore.pyqtSlot()
     def remove_from_favorites(self):
-        if self.parent_widget is None:
-            widget = self
-        else:
-            widget = self.parent_widget
-
+        widget = self if self.parent_widget is None else self.parent_widget
         self.parent.UserFavoritesListWidget.remove_item(
             widget.child_widget.item)
 
@@ -587,9 +578,8 @@ class LibraryWidget(BaseBuildWidget):
 
             _call('mklink /J "{0}" "{1}"'.format(link, target))
         elif platform == 'Linux':
-            if os.path.exists(link):
-                if os.path.islink(link):
-                    os.unlink(link)
+            if os.path.exists(link) and os.path.islink(link):
+                os.unlink(link)
 
             os.symlink(target, link)
 

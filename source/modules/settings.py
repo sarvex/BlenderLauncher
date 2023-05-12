@@ -74,15 +74,14 @@ def is_library_folder_valid(library_folder=None):
     if library_folder is None:
         library_folder = get_settings().value('library_folder')
 
-    if (library_folder is not None) and Path(library_folder).exists():
-        try:
-            (Path(library_folder) / ".temp").mkdir(parents=True, exist_ok=True)
-        except PermissionError:
-            return False
-
-        return True
-    else:
+    if library_folder is None or not Path(library_folder).exists():
         return False
+    try:
+        (Path(library_folder) / ".temp").mkdir(parents=True, exist_ok=True)
+    except PermissionError:
+        return False
+
+    return True
 
 
 def set_library_folder(new_library_folder):
@@ -121,17 +120,12 @@ def get_launch_when_system_starts():
                 name, value, _ = winreg.EnumValue(key, i)
 
                 if name == 'Blender Launcher':
-                    if value == path:
-                        return True
-                    else:
-                        return False
+                    return value == path
             except WindowsError:
                 pass
 
         key.Close()
-        return False
-    else:
-        return False
+    return False
 
 
 def set_launch_when_system_starts(is_checked):
@@ -283,10 +277,7 @@ def set_enable_download_notifications(is_checked):
 def get_blender_startup_arguments():
     args = get_settings().value('blender_startup_arguments')
 
-    if args is None:
-        return ""
-    else:
-        return args.strip()
+    return "" if args is None else args.strip()
 
 
 def set_blender_startup_arguments(args):
@@ -296,10 +287,7 @@ def set_blender_startup_arguments(args):
 def get_bash_arguments():
     args = get_settings().value('bash_arguments')
 
-    if args is None:
-        return ""
-    else:
-        return args.strip()
+    return "" if args is None else args.strip()
 
 
 def set_bash_arguments(args):
@@ -338,10 +326,7 @@ def set_launch_blender_no_console(is_checked):
 def get_quick_launch_key_seq():
     key_seq = get_settings().value('quick_launch_key_seq')
 
-    if key_seq is None:
-        return "alt+f11"
-    else:
-        return key_seq.strip()
+    return "alt+f11" if key_seq is None else key_seq.strip()
 
 
 def set_quick_launch_key_seq(key_seq):
@@ -377,10 +362,7 @@ def set_proxy_type(type):
 def get_proxy_host():
     host = get_settings().value('proxy/host')
 
-    if host is None:
-        return "255.255.255.255"
-    else:
-        return host.strip()
+    return "255.255.255.255" if host is None else host.strip()
 
 
 def set_proxy_host(args):
@@ -390,10 +372,7 @@ def set_proxy_host(args):
 def get_proxy_port():
     port = get_settings().value('proxy/port')
 
-    if port is None:
-        return "99999"
-    else:
-        return port.strip()
+    return "99999" if port is None else port.strip()
 
 
 def set_proxy_port(args):
@@ -403,10 +382,7 @@ def set_proxy_port(args):
 def get_proxy_user():
     user = get_settings().value('proxy/user')
 
-    if user is None:
-        return ""
-    else:
-        return user.strip()
+    return "" if user is None else user.strip()
 
 
 def set_proxy_user(args):
@@ -416,10 +392,7 @@ def set_proxy_user(args):
 def get_proxy_password():
     password = get_settings().value('proxy/password')
 
-    if password is None:
-        return ""
-    else:
-        return password.strip()
+    return "" if password is None else password.strip()
 
 
 def set_proxy_password(args):

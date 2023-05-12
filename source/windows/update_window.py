@@ -44,7 +44,7 @@ class BlenderLauncherUpdater(QMainWindow, BaseWindow, UpdateWindowUI):
             _popen([dist])
         elif self.platform == 'Linux':
             os.chmod(dist, 0o744)
-            _popen('nohup "' + dist + '"')
+            _popen(f'nohup "{dist}"')
 
         self.app.quit()
 

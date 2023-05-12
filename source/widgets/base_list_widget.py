@@ -59,11 +59,7 @@ class BaseListWidget(QListWidget):
         return items
 
     def contains_build_info(self, build_info):
-        for widget in self.widgets:
-            if build_info == widget.build_info:
-                return True
-
-        return False
+        return any(build_info == widget.build_info for widget in self.widgets)
 
     def _clear(self):
         self.clear()

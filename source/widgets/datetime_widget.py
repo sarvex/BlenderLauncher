@@ -22,7 +22,7 @@ class DateTimeWidget(QPushButton):
         self.MonthLabel = QLabel(date_parts[1])
         self.MonthLabel.setFixedWidth(32)
         self.MonthLabel.setAlignment(Qt.AlignCenter)
-        self.YearLabel = QLabel(date_parts[2] + ", ")
+        self.YearLabel = QLabel(f"{date_parts[2]}, ")
         self.TimeLabel = QLabel(datetime_parts[1])
 
         if self.build_hash is not None:

@@ -21,12 +21,11 @@ class BaseListWidgetItem(QListWidgetItem):
     def compare_datetime(self, other):
         if (self.date is None) or (other.date is None):
             return False
-        else:
-            set_locale()
-            this_datetime = strptime(self.date, "%d-%b-%y-%H:%M")
-            other_datetime = strptime(other.date, "%d-%b-%y-%H:%M")
+        set_locale()
+        this_datetime = strptime(self.date, "%d-%b-%y-%H:%M")
+        other_datetime = strptime(other.date, "%d-%b-%y-%H:%M")
 
-            return this_datetime > other_datetime
+        return this_datetime > other_datetime
 
     def compare_version(self, other):
         list_widget = self.listWidget()
@@ -44,8 +43,8 @@ class BaseListWidgetItem(QListWidgetItem):
             other_match = re.search(
                 r'\d+\.\d+', other_widget.build_info.subversion)
 
-            this_version = float(this_match.group(0))
-            other_version = float(other_match.group(0))
+            this_version = float(this_match[0])
+            other_version = float(other_match[0])
 
             if this_version == other_version:
                 return self.compare_datetime(other)

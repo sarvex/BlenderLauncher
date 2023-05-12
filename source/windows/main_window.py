@@ -149,10 +149,9 @@ class BlenderLauncher(QMainWindow, BaseWindow, Ui_MainWindow):
 
     def set_library_folder(self):
         library_folder = get_cwd().as_posix()
-        new_library_folder = FileDialogWindow()._getExistingDirectory(
-            self, "Select Library Folder", library_folder)
-
-        if (new_library_folder):
+        if new_library_folder := FileDialogWindow()._getExistingDirectory(
+            self, "Select Library Folder", library_folder
+        ):
             if set_library_folder(new_library_folder) is True:
                 self.draw(True)
             else:
@@ -403,7 +402,7 @@ class BlenderLauncher(QMainWindow, BaseWindow, Ui_MainWindow):
 
         for key in keys:
             if len(key) > 1:
-                key_seq = key_seq.replace(key, '<' + key + '>')
+                key_seq = key_seq.replace(key, f'<{key}>')
 
         try:
             self.listener = keyboard.GlobalHotKeys({
@@ -444,9 +443,7 @@ class BlenderLauncher(QMainWindow, BaseWindow, Ui_MainWindow):
         index = obj.metaObject().indexOfMethod(name)
 
         if index > -1:
-            method = obj.metaObject().method(index)
-
-            if method:
+            if method := obj.metaObject().method(index):
                 return obj.isSignalConnected(method)
 
         return False
@@ -458,11 +455,7 @@ class BlenderLauncher(QMainWindow, BaseWindow, Ui_MainWindow):
         download_widgets.extend(self.DownloadsDailyListWidget.items())
         download_widgets.extend(self.DownloadsExperimentalListWidget.items())
 
-        for widget in download_widgets:
-            if widget.state != DownloadState.IDLE:
-                return False
-
-        return True
+        return all(widget.state == DownloadState.IDLE for widget in download_widgets)
 
     def show_update_window(self):
         if not self.is_downloading_idle():
@@ -663,7 +656,7 @@ class BlenderLauncher(QMainWindow, BaseWindow, Ui_MainWindow):
         print("connection_error")
         set_locale()
         utcnow = strftime(('%H:%M'), localtime())
-        self.set_status("Error: connection failed at " + utcnow)
+        self.set_status(f"Error: connection failed at {utcnow}")
         self.app_state = AppState.IDLE
 
         if get_check_for_new_builds_automatically() is True:
@@ -695,7 +688,7 @@ class BlenderLauncher(QMainWindow, BaseWindow, Ui_MainWindow):
             self.timer.start()
             self.started = False
 
-        self.set_status("Last check at " + utcnow, True)
+        self.set_status(f"Last check at {utcnow}", True)
 
     def draw_from_cashed(self, build_info):
         if self.app_state == AppState.IDLE:
@@ -713,7 +706,7 @@ class BlenderLauncher(QMainWindow, BaseWindow, Ui_MainWindow):
 
         branch = build_info.branch
 
-        if (branch == 'stable') or (branch == 'lts'):
+        if branch in ['stable', 'lts']:
             downloads_list_widget = self.DownloadsStableListWidget
             library_list_widget = self.LibraryStableListWidget
         elif branch == 'daily':
@@ -724,7 +717,7 @@ class BlenderLauncher(QMainWindow, BaseWindow, Ui_MainWindow):
             library_list_widget = self.LibraryExperimentalListWidget
 
         if not library_list_widget.contains_build_info(build_info) and \
-                not downloads_list_widget.contains_build_info(build_info):
+                    not downloads_list_widget.contains_build_info(build_info):
             item = BaseListWidgetItem(build_info.commit_time)
             widget = DownloadWidget(
                 self, downloads_list_widget, item,
@@ -735,7 +728,7 @@ class BlenderLauncher(QMainWindow, BaseWindow, Ui_MainWindow):
     def draw_to_library(self, path, show_new=False):
         branch = Path(path).parent.name
 
-        if (branch == 'stable') or (branch == 'lts'):
+        if branch in ['stable', 'lts']:
             list_widget = self.LibraryStableListWidget
         elif branch == 'daily':
             list_widget = self.LibraryDailyListWidget
@@ -832,6 +825,6 @@ class BlenderLauncher(QMainWindow, BaseWindow, Ui_MainWindow):
         elif self.platform == 'Linux':
             exe = (cwd / "Blender Launcher").as_posix()
             os.chmod(exe, 0o744)
-            _popen('nohup "' + exe + '" -instanced')
+            _popen(f'nohup "{exe}" -instanced')
 
         self.destroy()

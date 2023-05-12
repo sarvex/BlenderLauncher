@@ -16,10 +16,7 @@ def get_platform():
         'win32': 'Windows'
     }
 
-    if sys.platform not in platforms:
-        return sys.platform
-
-    return platforms[sys.platform]
+    return platforms.get(sys.platform, sys.platform)
 
 
 def get_platform_full():
@@ -40,7 +37,7 @@ def get_environment():
     env = dict(os.environ)
     # For GNU/Linux and *BSD
     lp_key = 'LD_LIBRARY_PATH'
-    lp_orig = env.get(lp_key + '_ORIG')
+    lp_orig = env.get(f'{lp_key}_ORIG')
 
     if lp_orig is not None:
         # Restore the original, unmodified value
@@ -92,8 +89,6 @@ def _call(args):
 
         call(args, creationflags=CREATE_NO_WINDOW,
              shell=True, stdout=PIPE, stderr=STDOUT, stdin=DEVNULL)
-    elif platform == 'Linux':
-        pass
 
 
 def _check_output(args):
@@ -111,14 +106,8 @@ def _check_output(args):
 
 
 def is_frozen():
-    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-        return True
-    else:
-        return False
+    return bool(getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'))
 
 
 def get_cwd():
-    if is_frozen():
-        return Path(os.path.dirname(sys.executable))
-    else:
-        return Path.cwd()
+    return Path(os.path.dirname(sys.executable)) if is_frozen() else Path.cwd()

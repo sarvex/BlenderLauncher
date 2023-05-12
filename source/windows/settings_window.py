@@ -94,19 +94,19 @@ class SettingsWindow(QMainWindow, BaseWindow, Ui_SettingsWindow):
         quick_launch_key_seq = get_quick_launch_key_seq()
 
         # Quick launch was enabled or disabled
-        if self.old_enable_quick_launch_key_seq != enable_quick_launch_key_seq:
-            # Restart hotkeys listener
-            if enable_quick_launch_key_seq is True:
-                self.parent.setup_global_hotkeys_listener()
-            # Stop hotkeys listener
-            elif self.parent.listener is not None:
-                self.parent.listener.stop()
-        # Only key sequence was changed
-        elif self.old_quick_launch_key_seq != quick_launch_key_seq:
-            # Restart hotkeys listener
-            if enable_quick_launch_key_seq is True:
-                self.parent.setup_global_hotkeys_listener()
-
+        if (
+            self.old_enable_quick_launch_key_seq != enable_quick_launch_key_seq
+            and enable_quick_launch_key_seq is True
+            or self.old_enable_quick_launch_key_seq == enable_quick_launch_key_seq
+            and self.old_quick_launch_key_seq != quick_launch_key_seq
+            and enable_quick_launch_key_seq is True
+        ):
+            self.parent.setup_global_hotkeys_listener()
+        elif (
+            self.old_enable_quick_launch_key_seq != enable_quick_launch_key_seq
+            and self.parent.listener is not None
+        ):
+            self.parent.listener.stop()
         """Update connection"""
         use_custom_tls_certificates = get_use_custom_tls_certificates()
         proxy_type = get_proxy_type()
@@ -117,63 +117,63 @@ class SettingsWindow(QMainWindow, BaseWindow, Ui_SettingsWindow):
 
         # Restart app if any of the connection settings changed
         if self.old_use_custom_tls_certificates != use_custom_tls_certificates:
-            self.pending_to_restart.append("Use Custom TLS Certificates: {}🠆{}".format(
-                "ON" if self.old_use_custom_tls_certificates else "OFF",
-                "ON" if use_custom_tls_certificates else "OFF"))
+            self.pending_to_restart.append(
+                f'Use Custom TLS Certificates: {"ON" if self.old_use_custom_tls_certificates else "OFF"}🠆{"ON" if use_custom_tls_certificates else "OFF"}'
+            )
 
         if self.old_proxy_type != proxy_type:
             r_proxy_types = dict(zip(proxy_types.values(), proxy_types.keys()))
 
-            self.pending_to_restart.append("Proxy Type: {}🠆{}".format(
-                r_proxy_types[self.old_proxy_type], r_proxy_types[proxy_type]))
+            self.pending_to_restart.append(
+                f"Proxy Type: {r_proxy_types[self.old_proxy_type]}🠆{r_proxy_types[proxy_type]}"
+            )
 
         if self.old_proxy_host != proxy_host:
-            self.pending_to_restart.append("Proxy Host: {}🠆{}".format(
-                self.old_proxy_host, proxy_host))
+            self.pending_to_restart.append(
+                f"Proxy Host: {self.old_proxy_host}🠆{proxy_host}"
+            )
 
         if self.old_proxy_port != proxy_port:
-            self.pending_to_restart.append("Proxy Port: {}🠆{}".format(
-                self.old_proxy_port, proxy_port))
+            self.pending_to_restart.append(
+                f"Proxy Port: {self.old_proxy_port}🠆{proxy_port}"
+            )
 
         if self.old_proxy_user != proxy_user:
-            self.pending_to_restart.append("Proxy User: {}🠆{}".format(
-                self.old_proxy_user, proxy_user))
+            self.pending_to_restart.append(
+                f"Proxy User: {self.old_proxy_user}🠆{proxy_user}"
+            )
 
         if self.old_proxy_password != proxy_password:
             self.pending_to_restart.append("Proxy Password")
 
         """Update build check frequency"""
         check_for_new_builds_automatically = \
-            get_check_for_new_builds_automatically()
+                get_check_for_new_builds_automatically()
         new_builds_check_frequency = get_new_builds_check_frequency()
 
         # Restart scraper if any of the build check settings changed
         if self.old_check_for_new_builds_automatically != \
-                check_for_new_builds_automatically or \
-                self.old_new_builds_check_frequency != \
-                new_builds_check_frequency:
+                    check_for_new_builds_automatically or \
+                    self.old_new_builds_check_frequency != \
+                    new_builds_check_frequency:
             self.parent.draw_library(clear=True)
 
         """Update high DPI scaling"""
         enable_high_dpi_scaling = get_enable_high_dpi_scaling()
 
         if self.old_enable_high_dpi_scaling != enable_high_dpi_scaling:
-            self.pending_to_restart.append("High DPI Scaling: {}🠆{}".format(
-                "ON" if self.old_enable_high_dpi_scaling else "OFF",
-                "ON" if enable_high_dpi_scaling else "OFF"))
+            self.pending_to_restart.append(
+                f'High DPI Scaling: {"ON" if self.old_enable_high_dpi_scaling else "OFF"}🠆{"ON" if enable_high_dpi_scaling else "OFF"}'
+            )
 
         """Ask for app restart if needed else destroy self"""
-        if len(self.pending_to_restart) != 0:
+        if self.pending_to_restart:
             self.show_dlg_restart_bl()
         else:
             self._destroy()
 
     def show_dlg_restart_bl(self):
-        pending_to_restart = ""
-
-        for str in self.pending_to_restart:
-            pending_to_restart += "<br>- " + str
-
+        pending_to_restart = "".join(f"<br>- {str}" for str in self.pending_to_restart)
         self.dlg = DialogWindow(
             parent=self.parent, title="Warning",
             text="Restart Blender Launcher in<br> \

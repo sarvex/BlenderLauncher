@@ -78,10 +78,10 @@ class BuildInfoReader(QThread):
     def read_blender_version(self, old_build_info=None):
         set_locale()
 
-        if self.platform == 'Windows':
-            blender_exe = "blender.exe"
-        elif self.platform == 'Linux':
+        if self.platform == 'Linux':
             blender_exe = "blender"
+        elif self.platform == 'Windows':
+            blender_exe = "blender.exe"
         elif self.platform == 'macOS':
             blender_exe = "Blender/Blender.app/Contents/MacOS/Blender"
 
@@ -91,26 +91,22 @@ class BuildInfoReader(QThread):
 
         ctime = re.search("build commit time: " + "(.*)", version)[1].rstrip()
         cdate = re.search("build commit date: " + "(.*)", version)[1].rstrip()
-        strptime = time.strptime(cdate + ' ' + ctime, "%Y-%m-%d %H:%M")
+        strptime = time.strptime(f'{cdate} {ctime}', "%Y-%m-%d %H:%M")
         commit_time = time.strftime("%d-%b-%y-%H:%M", strptime)
         build_hash = re.search("build hash: " + "(.*)", version)[1].rstrip()
         subversion = re.search("Blender " + "(.*)", version)[1].rstrip()
 
         subfolder = self.path.parent.name
 
-        if self.archive_name is None:
-            name = self.path.name
-        else:
-            name = self.archive_name
-
-        if subfolder == 'daily':
+        name = self.path.name if self.archive_name is None else self.archive_name
+        if subfolder == 'custom':
+            branch = name
+        elif subfolder == 'daily':
             branch = "daily"
 
             # If branch from console is empty, it is probably stable release
             if len(subversion.split(' ')) == 1:
                 subversion += " Stable"
-        elif subfolder == 'custom':
-            branch = name
         elif subfolder == 'experimental':
             # Sensitive data! Requires proper folder naming!
             match = re.search(r'\+(.+?)\.', name)
@@ -120,7 +116,7 @@ class BuildInfoReader(QThread):
                 if old_build_info is not None:
                     branch = old_build_info.branch
             else:
-                branch = match.group(1)
+                branch = match[1]
         elif subfolder == 'stable':
             branch = "stable"
 
@@ -132,32 +128,30 @@ class BuildInfoReader(QThread):
             custom_name = old_build_info.custom_name
             is_favorite = old_build_info.is_favorite
 
-        build_info = BuildInfo(
+        return BuildInfo(
             self.path.as_posix(),
             subversion,
             build_hash,
             commit_time,
             branch,
             custom_name,
-            is_favorite
+            is_favorite,
         )
 
-        return build_info
-
     def write_build_info(self, build_info):
-        data = {}
-
-        data['file_version'] = BuildInfo.file_version
-        data['blinfo'] = []
-
-        data['blinfo'].append({
-            'branch': build_info.branch,
-            'subversion': build_info.subversion,
-            'build_hash': build_info.build_hash,
-            'commit_time': build_info.commit_time,
-            'custom_name': build_info.custom_name,
-            'is_favorite': build_info.is_favorite,
-        })
+        data = {
+            'file_version': BuildInfo.file_version,
+            'blinfo': [
+                {
+                    'branch': build_info.branch,
+                    'subversion': build_info.subversion,
+                    'build_hash': build_info.build_hash,
+                    'commit_time': build_info.commit_time,
+                    'custom_name': build_info.custom_name,
+                    'is_favorite': build_info.is_favorite,
+                }
+            ],
+        }
 
         path = self.path / '.blinfo'
 
@@ -176,29 +170,26 @@ class BuildInfoReader(QThread):
 
             build_info = self.build_info_from_json(data['blinfo'][0])
 
-            # Check if file version changed
-            if ('file_version' not in data) or \
-                    (data['file_version'] != BuildInfo.file_version):
-                new_build_info = self.read_blender_version(build_info)
-                self.write_build_info(new_build_info)
-                return new_build_info
-            else:
+            if (
+                'file_version' in data
+                and data['file_version'] == BuildInfo.file_version
+            ):
                 return build_info
-        # Generating new build information
+            new_build_info = self.read_blender_version(build_info)
+            self.write_build_info(new_build_info)
+            return new_build_info
         else:
             build_info = self.read_blender_version()
             self.write_build_info(build_info)
             return build_info
 
     def build_info_from_json(self, blinfo):
-        build_info = BuildInfo(
+        return BuildInfo(
             self.path.as_posix(),
             blinfo['subversion'],
             blinfo['build_hash'],
             blinfo['commit_time'],
             blinfo['branch'],
             blinfo['custom_name'],
-            blinfo['is_favorite']
+            blinfo['is_favorite'],
         )
-
-        return build_info
